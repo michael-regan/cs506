@@ -3,6 +3,8 @@ import math
 
 # a natural breaking point: ValueError emerges when all of the different weights converge to their optimal point (TODO: fix ValueError)
 
+# TODO: in fact, fix everything; having an expert for each point is not the standard implementation
+
 # test run of Winnow algorithm
 
 features = [[-1/2, 1/3], [3/4, -1/4], [1/2, -1/3], [-3/4, 1/4]]
@@ -41,8 +43,8 @@ def mwu_update(feature, label, feature_ind, current_t):
     
     # update happens here
     
-    new_weight_0 = weight_0 * math.exp(eta*feature_0)
-    new_weight_1 = weight_1 * math.exp(eta*feature_1)
+    new_weight_0 = weight_0 * math.exp(eta*label*feature_0)
+    new_weight_1 = weight_1 * math.exp(eta*label*feature_1)
 
     print("label", label)
     print("exponent_0", eta*label*feature_0)
