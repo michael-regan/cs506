@@ -12,8 +12,11 @@ weights_p2 = [1/3] * len(objects)
 
 # Fictitious play/MWU
 
-# Modeling two players rock-paper-scissors match, with each player making move based on uniform random distribution of weights (AKA experts) that are updated using an arbitrarily chosen set of rewards (in this implementation, decreasing the reward (cost) of rock losing against paper)
+# Modeling two players rock-paper-scissors match, with each player making move based on uniform random distribution of weights 
+# (AKA experts) that are updated using an arbitrarily chosen set of costs that are incurred for making a losing choice 
+# (in this implementation, the cost of rock losing against paper is decreased)
 
+# Task: Show that a Nash equilibrium exists
 
 def draw(myWeights):
     choice = random.uniform(0, sum(myWeights))
