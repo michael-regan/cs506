@@ -32,7 +32,7 @@ def draw(myWeights):
 
 def reward(move, player):
     
-    """ outcome is a tuple (player1move, player2move)
+    """ move is tuple (player1move, player2move)
         player is in {-1, 1}
         where player1=1, player2=-1
     """
