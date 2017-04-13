@@ -10,7 +10,7 @@ weights_p1 = [1/3] * len(objects)
 
 weights_p2 = [1/3] * len(objects)
 
-# Fictitious play/MWU
+# MWU
 
 # Modeling two players rock-paper-scissors match, with each player making move based on uniform random distribution of weights 
 # (AKA experts) that are updated using an arbitrarily chosen set of costs that are incurred for making a losing choice 
