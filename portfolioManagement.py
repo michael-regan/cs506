@@ -1,9 +1,10 @@
-import csv
+import csv, math
 import scipy.io as sio
 import numpy as np
 
-# Implementing portfolio management to optimize performance of S&P stock investments using MWU; 
-# data download from http://ocobook.cs.princeton.edu/links.htm
+# Implementing portfolio management to optimize performance of S&P stock investments using multiplicative weights update (MWU); 
+# Based on lecture notes from Arora, 2016 (chapter 10)
+# Eata download from http://ocobook.cs.princeton.edu/links.htm
 
 mat_contents = sio.loadmat('data_490_1000.mat')
 
@@ -12,6 +13,18 @@ mat_contents = sio.loadmat('data_490_1000.mat')
 # print(mat_contents['A'].shape)  # (490, 1000): 490 stocks, 1000 trading days
 
 # print(mat_contents['A'].T[0])  # this is the column vector, price of all stocks on day 0: c_i^{0}
+
+
+## parameters ##
+
+total_wealth_0=100000   # wealth on day 0
+
+num_stocks = mat_contents['A'].shape[0] 
+
+num_days = mat_contents['A'].shape[1] 
+
+
+## end parameters ##
 
 
 def to_csv(title, myArray):
@@ -26,20 +39,24 @@ def to_csv(title, myArray):
 	        writer.writerow(i)
 
 
-## parameters ##
-
-total_wealth_0=100000   # wealth on day 0
-
-num_stocks = mat_contents['A'].shape[0] 
-
-num_days = mat_contents['A'].shape[1] 
+def MWU(dist_experts, payoff):
+    
+    learning_rate = 0.8 # suitably small mu
+    
+    multi_update = [1+x*learning_rate for x in payoff]
+    
+    new_distribution = [x*y for x,y in zip(dist_experts,multi_update)]
+    
+    return new_distribution
+    
+    
 
 """
-Checking first investment strategy: Basic strategy (invest in all stocks equally, No changes; Let it ride)
+First investment strategy: Basic (invest in all stocks equally, No changes; Let it ride)
 What is value of portfolio at the close of each day?
 """
 
-P_i_0 = 1/num_stocks  # fraction of your wealth invested in stock i on day 0
+P_i_0 = 1/num_stocks  # fraction of your wealth invested in stock i on day 0 (this proportion does not change in this first test)
 
 total_wealth_t=total_wealth_0  #initializing wealth for day t
 
@@ -49,9 +66,45 @@ for t in range(0, num_days-1):
 
 	r_i_t = mat_contents['A'].T[t+1]/mat_contents['A'].T[t]
 
-	factor_wealth_increases_day_t = np.sum([x for x in P_i_0 * r_i_t])  # multiplicative factor wealth increases by on day t
+    # multiplicative factor wealth increases by on day t with EQUAL proportion of wealth invested in each stock
+	factor_wealth_increases_day_t = np.sum([x for x in P_i_0 * r_i_t])  
 	total_wealth_t = total_wealth_t * factor_wealth_increases_day_t
 	#print("Day:", t+1, "Wealth:", total_wealth_t)
 	myWealth.append((t+1, total_wealth_t))
 
-to_csv('equal_noExperts', myWealth)
+#to_csv('equal_noExperts', myWealth)
+
+
+"""
+Next strategy: P_i_t is the fraction of wealth invested in stock i at the start of day t.
+The distribution on experts is the way of splitting our money into the n stocks.
+Maximize payoffs: Increase the weight of experts if they get positive payoff, and reduce weight in case of negative payoff.
+"""
+
+
+P_i_t = [1/num_stocks]*num_stocks  # fraction of your wealth invested in stock i on day t (initialization; this will be updated according to payoffs)
+
+total_wealth_t=total_wealth_0  #initializing wealth for day t
+
+myWealth=[(0, total_wealth_0)]
+
+for t in range(0, num_days-1):
+
+    r_i_t = mat_contents['A'].T[t+1]/mat_contents['A'].T[t]
+
+    # payoff for expert i on day t
+    payoff_day_t = [math.log(x) for x in r_i_t]
+    
+    # new proportion for each expert on day t
+    P_i_next_t = MWU(P_i_t, payoff_day_t)
+    
+    #print(P_i_next_t)
+    
+    # multiplicative factor wealth increases by on day t, now with proportion of wealth investing being updated 
+    factor_wealth_increases_day_t = np.sum([x for x in P_i_next_t * r_i_t])  
+    total_wealth_t = total_wealth_t * factor_wealth_increases_day_t
+    
+    print("Day:", t+1, "Wealth:", total_wealth_t)
+    myWealth.append((t+1, total_wealth_t))
+
+#to_csv('maximizePayoff_5', myWealth)
