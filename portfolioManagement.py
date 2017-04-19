@@ -4,7 +4,7 @@ import numpy as np
 
 # Implementing portfolio management to optimize performance of S&P stock investments using multiplicative weights update (MWU); 
 # Based on lecture notes from Arora, 2016 (chapter 10)
-# Eata download from http://ocobook.cs.princeton.edu/links.htm
+# data from http://ocobook.cs.princeton.edu/links.htm
 
 mat_contents = sio.loadmat('data_490_1000.mat')
 
@@ -15,7 +15,7 @@ mat_contents = sio.loadmat('data_490_1000.mat')
 # print(mat_contents['A'].T[0])  # this is the column vector, price of all stocks on day 0: c_i^{0}
 
 
-## parameters ##
+"""Parameters"""
 
 total_wealth_0=100000   # wealth on day 0
 
@@ -39,21 +39,20 @@ def to_csv(title, myArray):
 	        writer.writerow(i)
 
 
-def MWU(dist_experts, payoff):
+def MWU(distribution_experts, payoff, learning_rate):
     
-    learning_rate = 0.8 # suitably small mu
-    
-    multi_update = [1+x*learning_rate for x in payoff]
-    
-    new_distribution = [x*y for x,y in zip(dist_experts,multi_update)]
-    
-    return new_distribution
-    
-    
+    mwu = [1+x*learning_rate for x in payoff]
+  
+    new_distribution = [x*y for x,y in zip(distribution_experts,mwu)]
 
+    normalized_new_dist = [x/sum(new_distribution) for x in new_distribution]
+    
+    return normalized_new_dist
+    
+    
 """
-First investment strategy: Basic (invest in all stocks equally, No changes; Let it ride)
-What is value of portfolio at the close of each day?
+Basic investment strategy: Invest in all stocks equally, No changes --> Let it ride;
+What is value of portfolio at the end of 1000 days of trading?
 """
 
 P_i_0 = 1/num_stocks  # fraction of your wealth invested in stock i on day 0 (this proportion does not change in this first test)
@@ -81,30 +80,45 @@ The distribution on experts is the way of splitting our money into the n stocks.
 Maximize payoffs: Increase the weight of experts if they get positive payoff, and reduce weight in case of negative payoff.
 """
 
+learning_rates = [1.5]
 
-P_i_t = [1/num_stocks]*num_stocks  # fraction of your wealth invested in stock i on day t (initialization; this will be updated according to payoffs)
+for learning_rate in learning_rates:
 
-total_wealth_t=total_wealth_0  #initializing wealth for day t
+    learning_rates.append(learning_rate+0.1)
 
-myWealth=[(0, total_wealth_0)]
+    if learning_rate>10:
+        break
 
-for t in range(0, num_days-1):
+    print (learning_rate)
 
-    r_i_t = mat_contents['A'].T[t+1]/mat_contents['A'].T[t]
+    P_i_t = [1/num_stocks]*num_stocks  # fraction of your wealth invested in stock i on day t (initialization; this will be updated according to payoffs)
 
-    # payoff for expert i on day t
-    payoff_day_t = [math.log(x) for x in r_i_t]
-    
-    # new proportion for each expert on day t
-    P_i_next_t = MWU(P_i_t, payoff_day_t)
-    
-    #print(P_i_next_t)
-    
-    # multiplicative factor wealth increases by on day t, now with proportion of wealth investing being updated 
-    factor_wealth_increases_day_t = np.sum([x for x in P_i_next_t * r_i_t])  
-    total_wealth_t = total_wealth_t * factor_wealth_increases_day_t
-    
-    print("Day:", t+1, "Wealth:", total_wealth_t)
-    myWealth.append((t+1, total_wealth_t))
+    total_wealth_t=total_wealth_0  #initializing wealth for day t
 
-#to_csv('maximizePayoff_5', myWealth)
+    myWealth=[(0, total_wealth_0)]
+
+    for t in range(0, num_days-1):
+
+        r_i_t = mat_contents['A'].T[t+1]/mat_contents['A'].T[t]
+
+        # payoff for expert i on day t
+        payoff_day_t = [math.log(x) for x in r_i_t]
+        
+        # new proportion for each expert on day t
+        P_i_next_t = MWU(P_i_t, payoff_day_t, learning_rate)
+
+        P_i_t=P_i_next_t  # updating for next iteration
+        
+        #print(P_i_next_t)
+        
+        # multiplicative factor wealth increases by on day t, now with proportion of wealth investing being updated 
+        factor_wealth_increases_day_t = np.sum([x for x in P_i_next_t * r_i_t])  
+        total_wealth_t = total_wealth_t * factor_wealth_increases_day_t
+        
+        if (t+1)%100==0:
+            print("Day:", t+1, "Wealth:", total_wealth_t)
+        myWealth.append((t+1, total_wealth_t))
+
+    print()
+
+    #to_csv('maximizePayoff_5', myWealth)
