@@ -8,9 +8,9 @@
 from scipy import misc
 import numpy as np
 
-myArray = misc.imread('image.jpg')
+img = misc.imread('image.jpg')
 
-print(myArray.shape)
-
-U, s, V = np.linalg.svd(myArray, full_matrices=True)
-print(U.shape, s.shape, V.shape)
+if not SVD:
+    SVD = np.linalg.svd(img, full_matrices=True)
+u, s, v = SVD
+arr = np.zeros((len(u), len(v)))
