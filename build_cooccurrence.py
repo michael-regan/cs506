@@ -3,17 +3,10 @@ import numpy as np
 
 
 corpus = [
-    'This is the first document',
-    'This is the second document',
-    'And the third one',
-    'Do I strip punctuation?',
+  'My first thought was he lied in every word',
+	'That hoary cripple with malicious eye',
+	'Askance to watch the working of his lie'
 ]
-
-# corpus = [
-#   'My first thought was he lied in every word',
-# 	'That hoary cripple with malicious eye',
-# 	'Askance to watch the working of his lie'
-# ]
 
 
 all_words=[]
